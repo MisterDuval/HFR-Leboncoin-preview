@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name Leboncoin preview
-// @version 0.3.0
+// @version 0.4.0
 // @description Permet de voir une preview des annonces leboncoin, inspiré de [HFR] Image quote preview
 // @updateURL https://raw.githubusercontent.com/Orken/HFR-Leboncoin-preview/master/hfr-leboncoin-preview.user.js
 // @downloadURL https://raw.githubusercontent.com/Orken/HFR-Leboncoin-preview/master/hfr-leboncoin-preview.user.js
@@ -19,32 +19,9 @@ var testLinkToLBC = function (link) {
     return link.href.match(/www.leboncoin.fr/i);
 };
 
-/*
-// J'ai désactivé la miniature en attendant d'avoir une solution pour les images en portrait qui prennent trop de hauteur
-var generateGallery = function (thumbs) {
-    if (thumbs && thumbs.length) {
-        var gallery = document.createElement('div');
-        gallery.style.textAlign = 'center';
-        gallery.style.backgroundColor = 'white';
-        var length = thumbs.length;
-        var width = 390 - Math.min(length,3) * 6;
-        for (i=0;i<length;i++) {
-            var img = new Image();
-            img.src = thumbs[i];
-            //img.style.maxHeight = '120px';
-            img.style.maxWidth = '400px'; // (width / Math.min(length,3) ) + 'px';
-            img.style.margin = '0px';
-            gallery.appendChild(img);
-        }
-        return gallery;
-    }
-};*/
-
-var display = function (description, thumbs, tableElements) {
+var display = function (description, tableElements) {
     var $content = $('<div></div>');
     var $body = $('<div style="padding:10px;overflow:hidden;"></div>');
-
-    // if (thumbs) content.append(generateGallery(thumbs));
 
     $body.html(description);
     $content.append($body);
@@ -104,22 +81,16 @@ var previewLBC = function() {
                             $link.css('color', '#666');
                             $container.append('<h1 style="text-align:center;">Cette annonce est désactivée"</div>');
                         } else {
-                            var text = html.match(/itemprop="description">(.*)<\/p>/);
-                            var thumbs = [];
-                            var image = html.match(/data-popin-content="(.*?)"/);
-                            if (image) {
-                                thumbs = new Array(image[1]);
-                            }
+                            var description = $(html).find('._11TgD div[data-qa-id="adview_description_container"] > div > span');
                             var tableElements = {};
-                            var price = html.match(/itemprop="price" content="(.*)"/);
-                            if (price) tableElements.Prix = price[1]+'€';
+                            var price = $(html).find('.eVLNz ._1F5u3').text();
+                            if (price) tableElements.Prix = price;
 
-                            $.each($(html).find('.properties .line h2 .value'), function(k,el){
-                                var title = $(el).parent().find('.property').text();
-                                tableElements[title] = $(el).text();
+                            // Critères
+                            $.each($(html).find('._11TgD ._3-hZF'), function(k,el){
+                                tableElements[$(el).text()] = $(el).parent().find('._3Jxf3').text();
                             });
-
-                            $container.html(display(text[1], thumbs, tableElements));
+                            $container.html(display(description, tableElements));
                         }
                     },
                     error: function (error) {
